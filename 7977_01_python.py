@@ -153,7 +153,7 @@ def movie_decile(imdb_df):
     data.drop(data[['fn', 'tid', 'title', 'wordsInTitle', 'url', 'imdbRating','ratingCount', 'duration', 'year', 'type','nrOfPhotos', 'nrOfNewsArticles', 'nrOfUserReviews','nrOfGenre']],axis=1,inplace=True)
     test1 = data.groupby('decile', sort=True).sum().reset_index()
     test_2=pd.DataFrame(test1[['decile', 'nrOfWins', 'nrOfNominations']])
-    test_2['count']=imdb_df.groupby('decile').count()
+    test_2['count']=imdb_df.groupby('decile').size().reset_index()[0]
     test_3=test1.drop(test1[['nrOfWins', 'nrOfNominations']],axis=1).set_index('decile')
     test_4 = pd.DataFrame(test_3.columns.values[np.argsort(-test_3.values, axis=1)[:, :3]], index=test_3.index,columns = ['1st Max','2nd Max','3rd Max']).reset_index()
     res=pd.merge(test_2, test_4, how ='inner', on ='decile')
