@@ -15,7 +15,7 @@ date = pd.to_datetime(input('Input date in mm-dd-yyyy format'))
 # Q1 Find least sales amount for each item
 # has been solved as an example
 def least_sales(sales_df):
-    ls = sales_df.groupby(["Item"])["Sale_amt"].min().reset_index()
+    ls = sales_df.groupby(["Item"])["Sale_amt"].min().dropna().reset_index()
     return ls
 
 # Q2 compute total sales at each year X region
@@ -25,6 +25,7 @@ def sales_year_region(sales_df):
 
 # Q3 append column with no of days difference from present date to each order date
 def days_diff(sales_df,date):
+    sales_df['OrderDate']=pd.to_datetime(sales_df['OrderDate'])
     sales_df['days_diff']=sales_df['OrderDate'].apply(lambda x: (date-x).days)
     print(sales_df.head())
 
@@ -36,7 +37,7 @@ def mgr_slsmn(sales_df):
 
 # Q5 For all regions find number of salesman and number of units
 def slsmn_units(sales_df):
-    sales_df2=sales_df.groupby('Region').agg({'Sale_amt':['sum'],'SalesMan':['nunique']}).reset_index()
+    sales_df2=sales_df.groupby('Region').agg({'Sale_amt':['sum'],'SalesMan':['nunique']}).dropna().reset_index()
     sales_df2.columns=['Region','Total_Sales','SalesMan_count']
     print(sales_df2)
 
@@ -102,7 +103,7 @@ def report_genre(imdb_df):
     imdb_df3=pd.DataFrame(imdb_df1.year)
     imdb_df3['type']=imdb_df["type"].str.split(".", n = 1, expand = True)[1]
     imdb_df3['Genre_combo']=imdb_df2.apply(lambda x: "|".join(x.index[x>=1]),axis=1)
-    imdb_df4=imdb_df.groupby('year').agg({'imdbRating': ['mean','min', 'max'],'duration':['sum']}).reset_index()
+    imdb_df4=imdb_df.groupby('year').agg({'imdbRating': ['mean','min', 'max'],'duration':['sum']}).dropna().reset_index()
     imdb_df4.columns=['year','avg_rating','min_rating','max_rating','total_run_time_mins ']
     res=pd.merge(imdb_df3,imdb_df4,how='inner',on='year')
     print(res.head())
@@ -117,11 +118,10 @@ def relation(imdb_df):
     print(trend_plot(imdb_df5))
     imdb_df6=imdb_df.groupby('year')['title_len'].agg([('min_length','min'),('max_length','max')]).reset_index()
     imdb_df7=pd.DataFrame(imdb_df.year)
-    imdb_df7['a']=(imdb_df.title_len < imdb_df.title_len.quantile(.25))
-    imdb_df7['b']=(imdb_df.title_len >= imdb_df.title_len.quantile(.25)) & (imdb_df.title_len < imdb_df.title_len.quantile(.50))
-    imdb_df7['c']=(imdb_df.title_len >= imdb_df.title_len.quantile(.50)) & (imdb_df.title_len < imdb_df.title_len.quantile(.75))
-    imdb_df7['d']=imdb_df.title_len >= imdb_df.title_len.quantile(.75)
-    imdb_df7.columns=['year','num_videos_less_than25Percentile','num_videos_25_50Percentile','num_videos_50_75Percentile','num_videos_greaterthan75Precentile']
+    imdb_df7['num_videos_less_than25Percentile']=(imdb_df.title_len < imdb_df.title_len.quantile(.25))
+    imdb_df7['num_videos_25_50Percentile']=(imdb_df.title_len >= imdb_df.title_len.quantile(.25)) & (imdb_df.title_len < imdb_df.title_len.quantile(.50))
+    imdb_df7['num_videos_50_75Percentile']=(imdb_df.title_len >= imdb_df.title_len.quantile(.50)) & (imdb_df.title_len < imdb_df.title_len.quantile(.75))
+    imdb_df7['num_videos_greaterthan75Precentile']=imdb_df.title_len >= imdb_df.title_len.quantile(.75)
     imdb_df8=imdb_df7.groupby('year').sum().reset_index()
     res=pd.merge(imdb_df6, imdb_df8, how ='inner', on ='year')
     print(res.head())
